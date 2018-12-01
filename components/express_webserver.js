@@ -2,7 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var querystring = require('querystring');
 var debug = require('debug')('botkit:webserver');
-
+var request=require('request')
 module.exports = function(controller, bot) {
 
 
@@ -31,8 +31,26 @@ module.exports = function(controller, bot) {
       require("./routes/" + file)(webserver, controller);
     });
 
-    controller.webserver = webserver;
+   
 
+    request.post('https://graph.facebook.com/me/subscribed_apps?subscribed_fields=messages&access_token=' + process.env.page_token,
+function (err, res, body) {
+if (err) {
+controller.log('Could not subscribe to page messages');
+}
+else {
+controller.log('Successfully subscribed to Facebook events:', body);
+console.log('Botkit activated');
+
+  // start ticking to send conversation messages
+  controller.startTicking();
+}
+
+}
+);
+ controller.webserver = webserver;
     return webserver;
 
 }
+
+
