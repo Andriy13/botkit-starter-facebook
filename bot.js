@@ -38,12 +38,15 @@ var debug = require('debug')('botkit:main');
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.facebookbot({
-    // debug: true,
+     debug: true,
     verify_token: process.env.verify_token,
     access_token: process.env.page_token,
     studio_token: process.env.studio_token,
     studio_command_uri: process.env.studio_command_uri,
+    receive_via_postback: true,
 });
+
+
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
@@ -67,6 +70,10 @@ require('botkit-studio-metrics')(controller);
 var normalizedPath = require("path").join(__dirname, "skills");
 require("fs").readdirSync(normalizedPath).forEach(function(file) {
   require("./skills/" + file)(controller);
+});
+
+
+var bot = controller.spawn({
 });
 
 
@@ -114,3 +121,56 @@ function usage_tip() {
     console.log('Get a Botkit Studio token here: https://studio.botkit.ai/')
     console.log('~~~~~~~~~~');
 }
+
+controller.hears(['hello'],'direct_mention, direct_message', function(bot, message) {
+
+    bot.reply(message,'Howdy!');
+  
+});
+
+controller.on('facebook_postback', function(bot, message) {
+    if(message.payload ==='catalogue')
+    {
+        bot.reply(message,'No cataloge yet :(');
+    }
+});
+controller.on('facebook_postback', function(bot, message) {
+    //bot.reply(message, 'This is the payload selected: ' + message.payload);
+    
+    if(message.payload ==='main_menu'||message.payload ==='get_started_payload')
+    {
+        bot.startConversation(message, function(err, convo) {
+            convo.ask({
+                    "text": "Main menu",
+                    "quick_replies": [
+                        {
+                            "content_type": "text",
+                            "title": "My purchases",
+                            "payload": "menu_purchases"
+                        },
+                        {
+                            "content_type": "text",
+                            "title": "Shop",
+                            "payload": "menu_shop"
+                        },
+                        {
+                            "content_type": "text",
+                            "title": "Favorites",
+                            "payload": "menu_favs"
+                        },
+                        {
+                            "content_type": "text",
+                            "title": "To invite a friend",
+                            "payload": "menu_invite"
+                        }
+                    ]
+                }, function(response, convo) {
+                convo.say("Function "+response.text+" is still yet to be added");
+                convo.next();
+            });
+        });
+    }
+    
+});
+
+
