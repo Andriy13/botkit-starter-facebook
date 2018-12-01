@@ -5,7 +5,7 @@ var debug = require('debug')('botkit:thread_settings');
 module.exports = function(controller) {
 
     debug('Configuring Facebook thread settings...');
-    controller.api.thread_settings.greeting('[
+    controller.api.thread_settings.greeting([
   {
     "locale":"default",
     "text":"Hello, {{user_first_name}}."
@@ -16,7 +16,7 @@ module.exports = function(controller) {
     "locale":"ru_RU",
     "text":"Привет, {{user_first_name}}."
   }
-]');
+]);
     controller.api.thread_settings.get_started('get_started_payload');
     controller.api.thread_settings.menu([
         {
