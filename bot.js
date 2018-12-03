@@ -151,4 +151,11 @@ controller.on('facebook_postback', function(bot, message) {
     }
 });
 
+controller.on('facebook_postback', function(bot, message) {
+    switch(message.payload)
+    {
+        case 'menu_shop': bot.reply(message,'no shop');
+    }
+});
+
 
