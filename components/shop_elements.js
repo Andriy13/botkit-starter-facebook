@@ -4,7 +4,7 @@ module.exports=()=>{
 
 //Create products list for shop
 var shop_elements=[];
-var listLoader=require(__dirname+'\\modules_bestbuy\\list-loader')
+var listLoader=require(__dirname+'/modules_bestbuy/list-loader')
 var list=new Array;
 return listLoader.loadDetails().then(function(value){list=value;}).then(()=>{
     
