@@ -38,11 +38,12 @@ var debug = require('debug')('botkit:main');
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.facebookbot({
-     debug: true,
+    debug: true,
     verify_token: process.env.verify_token,
     access_token: process.env.page_token,
     studio_token: process.env.studio_token,
     studio_command_uri: process.env.studio_command_uri,
+    bestbuy_api: process.env.bestbuy_api,
     receive_via_postback: true,
 });
 
@@ -57,15 +58,8 @@ require(__dirname + '/components/subscribe_events.js')(controller);
 // Set up Facebook "thread settings" such as get started button, persistent menu
 require(__dirname + '/components/thread_settings.js')(controller);
 
-
 // Send an onboarding message when a user activates the bot
 require(__dirname + '/components/onboarding.js')(controller);
-
-// Load in some helpers that make running Botkit on Glitch.com better
-require(__dirname + '/components/plugin_glitch.js')(controller);
-
-// enable advanced botkit studio metrics
-require('botkit-studio-metrics')(controller);
 
 var normalizedPath = require("path").join(__dirname, "skills");
 require("fs").readdirSync(normalizedPath).forEach(function(file) {
@@ -73,89 +67,37 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
 });
 
 
+var shop_elements;
+require(__dirname+'\\components\\shop_elements')().then((value)=>{shop_elements=value});
+
+var convo_messages=require(__dirname+'\\components\\convo_messages');
+
 var bot = controller.spawn({
 });
 
 
-
-controller.on('facebook_postback', function(bot, message) {
-    if(message.payload ==='catalogue')
-    {
-        bot.reply(message,'No cataloge yet :(');
-    }
-});
 controller.on('facebook_postback', function(bot, message) {
     //bot.reply(message, 'This is the payload selected: ' + message.payload);
     
     if(message.payload ==='main_menu'||message.payload ==='get_started_payload')
     {
-        /*bot.startConversation(message, function(err, convo) {
-            convo.ask({
-                    "text": "Main menu",
-                    "quick_replies": [
-                        {
-                            "content_type": "text",
-                            "title": "My purchases",
-                            "payload": "menu_purchases"
-                        },
-                        {
-                            "content_type": "text",
-                            "title": "Shop",
-                            "payload": "menu_shop"
-                        },
-                        {
-                            "content_type": "text",
-                            "title": "Favorites",
-                            "payload": "menu_favs"
-                        },
-                        {
-                            "content_type": "text",
-                            "title": "To invite a friend",
-                            "payload": "menu_invite"
-                        }
-                    ]
-                }, function(response, convo) {
-                convo.say("Function "+response.text+" is still yet to be added");
-                convo.next();
-            });
-        });*/
-        bot.reply(message,{
-            "text": "Main menu",
-            "quick_replies": [
-                {
-                    "content_type": "text",
-                    "title": "My purchases",
-                    "payload": "menu_purchases"
-                },
-                {
-                    "content_type": "text",
-                    "title": "Shop",
-                    "payload": "menu_shop"
-                },
-                {
-                    "content_type": "text",
-                    "title": "Favorites",
-                    "payload": "menu_favs"
-                },
-                {
-                    "content_type": "text",
-                    "title": "To invite a friend",
-                    "payload": "menu_invite"
-                }
-            ]
+       
+        bot.createConversation(message,function(err,convo){
+            //convo.addMessage();
         });
-    }
-    switch(message.payload)
-    {
-        case 'menu_shop': bot.reply(message,'no shop');
+        bot.reply(message,convo_messages.Menu);
     }
 });
 
-controller.on('facebook_postback', function(bot, message) {
-    switch(message.payload)
-    {
-        case 'menu_shop': bot.reply(message,'no shop');
+controller.on('message_received', function(bot, message) {
+    console.log(message);
+    if(message.message!=undefined){
+        if(message.message.quick_reply.payload==='menu_shop')
+        {
+            bot.reply(message,convo_messages.Catalogue(shop_elements));
+        }
+    } else if(message.payload==='catalogue'){
+        bot.reply(message,convo_messages.Catalogue(shop_elements));
     }
 });
-
 
