@@ -68,9 +68,9 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
 
 
 var shop_elements;
-require(__dirname+'\\components\\shop_elements')().then((value)=>{shop_elements=value});
+require(__dirname+'/components/shop_elements')().then((value)=>{shop_elements=value});
 
-var convo_messages=require(__dirname+'\\components\\convo_messages');
+var convo_messages=require(__dirname+'/components/convo_messages');
 
 var bot = controller.spawn({
 });
