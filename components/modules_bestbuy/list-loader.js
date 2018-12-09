@@ -1,6 +1,6 @@
 
 async function loadIds(){
-    var Ids=await require(__dirname+'\\get_ids');
+    var Ids=await require(__dirname+'/get_ids');
     return Ids;
 }
 async function loadDetails(){
@@ -8,7 +8,7 @@ async function loadDetails(){
     var Details=[];
     for(var i=0;i<7;i++)
     {
-        Details.push( await require(__dirname+'\\get_detail')(list[i].sku));
+        Details.push( await require(__dirname+'/get_detail')(list[i].sku));
     }
     return await Details;
 }
