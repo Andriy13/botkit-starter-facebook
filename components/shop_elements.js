@@ -21,7 +21,7 @@ return listLoader.loadDetails().then(function(value){list=value;}).then(()=>{
             "buttons":[
             {
                 "type":"postback",
-                "title":"Shop now",
+                "title":"Start shopping",
                 "payload": element[0].sku
             },{
                 "type":"postback",
