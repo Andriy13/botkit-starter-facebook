@@ -1,5 +1,5 @@
 var bby=require ('bestbuy')(process.env.bestbuy_api);
-var helper=require(__dirname+'\\error-handler');
+var helper=require(__dirname+'/error-handler');
 
 module.exports=(sku)=>{
     return new Promise((resolve,reject)=>{
