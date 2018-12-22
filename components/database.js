@@ -1,3 +1,4 @@
+var request=require('request');
 var Favorite,Order,FavoriteModel,OrderModel;
 var mongoose;
 async function init(){
@@ -18,8 +19,18 @@ async function init(){
         sku: { type: String },
         timestamp: { type: Date, default: Date.now }
     });
+
+    InviteSchema=new mongoose.Schema({
+        senderID:{type: String},
+        timestamp:{type: Date, default: Date.now},
+        code:{type :String},
+        invitedID:{type:String},
+        timestamp_invite:{type:Date}
+    });
+
     FavoriteModel=mongoose.model('Favorite',FavoriteSchema,'favorites');
     OrderModel=mongoose.model('Order',OrderSchema,'orders');
+    InviteModel=mongoose.model('Invite',InviteSchema,'invites');
     let url=process.env.mongo_url.toString();
     await mongoose.connect(url,{useNewUrlParser: true}).catch((err)=>{console.log(err);});
     mongoose.connection.on('open', function() {
@@ -84,11 +95,75 @@ async function get_orders(id){
     }).then((value)=>{return value});
 }
 
+async function generate_code(){
+    let code = "";
+    let possible = "0123456789";
+  
+    for (let i = 0; i < 14; i++){
+        code += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    
+    await InviteModel.find({code:code},function(err,invite){
+        if(err) throw err;
+        if(invite.length){
+            code=generate_code();
+        }
+    });
+
+    return code;
+}
+
+async function new_invite(id){
+    let code = await generate_code();
+    let Invite=new InviteModel({
+        senderID:id,
+        code:code
+    });
+    let invite=await InviteModel.find({senderID:id},function(err,invite){
+        if(err) throw err;
+        
+    });
+    if(invite.length){
+            console.log('already exists!');
+            code=invite[0].code
+        }else{
+            Invite.save();
+        }
+    return code;
+}
+
+async function update_invite(id,code){
+    let invite=await InviteModel.findOneAndUpdate({code:code},
+        {invitedID:id,timestamp_invite:Date.now()},
+        function(err,invite){
+            if(err) throw err;
+    });
+    request.post({
+        json: true,
+        headers: {'Content-Type': 'application/json'},
+        url:`https://graph.facebook.com/v2.6/me/messages?access_token=${process.env.page_token}`,
+        body:{
+            'messaging_type':'MESSAGE_TAG',
+            'recipient':{
+              "id":invite.senderID
+            },
+            'message':{
+              'text':'Your referral link has been used!'
+            }
+          }
+      }, function(error, response, body){
+       
+      });
+      return invite.senderID;
+}
+
 module.exports={
     init,
     add_favorite,
     delete_favorite,
     get_favorites,
     add_order,
-    get_orders
+    get_orders,
+    new_invite,
+    update_invite
 }

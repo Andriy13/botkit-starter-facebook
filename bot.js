@@ -1,4 +1,5 @@
-
+//var env = require('node-env-file');
+//env(__dirname + '/.env');
 
 if (!process.env.page_token) {
     console.log('Error: Specify a Facebook page_token in environment.');
@@ -55,10 +56,31 @@ database.init();
 var bot = controller.spawn({
 });
 
-controller.on('message_received', async function(bot, message) {
-    console.log(message);
+controller.on('facebook_referral',async function(bot,message){
+    if(message.payload ==='get_started_payload'){
+        if(message.referral!=undefined){
+            await database.update_invite(message.user,message.referral.ref);
+        }
+        bot.reply(message,convo_messages.Menu);
+    }else{
+        if(message.referral!=undefined){
+            database.update_invite(message.user,message.referral.ref);
+        }
+        bot.reply(message,'You already joined this page');
+        bot.reply(message,convo_messages.Menu);
+    }
 
-    if(message.payload ==='main_menu'||message.payload ==='get_started_payload')
+});
+
+controller.on('message_received', async function(bot, message) {
+    //console.log(message);
+    if(message.payload ==='get_started_payload'){
+        if(message.referral!=undefined){
+            await database.update_invite(message.user,message.referral.ref);
+            bot.reply(message,'Welcome!');
+        }
+        bot.reply(message,convo_messages.Menu);   
+    }else if(message.payload ==='main_menu')
     {
         bot.reply(message,convo_messages.Menu);
     }else if(message.message!=undefined){
@@ -90,11 +112,17 @@ controller.on('message_received', async function(bot, message) {
                 bot.reply(message, await convo_messages.Catalogue(elements));
             }
         }
+
+        else if(message.quick_reply.payload==='menu_invite'){
+            let code= await database.new_invite(message.user);
+            let url=`http://m.me/${message.page}?ref=${code}`;
+            bot.reply(message,convo_messages.Share_Invite(url));
+        }
     }
 });
 
 controller.on('facebook_postback',async function(bot, message){
-    console.log(message);
+    //console.log(message);
     if(message.raw_message.postback.title==='Start shopping')
     {
        bot.reply(message,await convo_messages.Item_Description(message.raw_message.postback.payload));

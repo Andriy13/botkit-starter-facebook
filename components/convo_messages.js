@@ -118,10 +118,18 @@ async function Favorite_Menu(id,database){
 async function Orders_Menu(id,database){
     let orders=await database.get_orders(id);
     let list=[];
-    orders.forEach(element=>{
-        list.push({
-            "title":element.sku+" "+element.timestamp,
-            "subtitle":'$'+element.amount+"|| coordinates: "+element.lat+","+element.long+" Phone: "+element.phone,
+    let ids=[];
+    let listLoader=await require(__dirname+"/modules_bestbuy/list-loader");
+    orders.forEach(async function(element){
+        ids.push(element.sku);   
+    });
+    let items=await listLoader.loadDetails(ids);
+    console.log(items);
+    for(let i=0;i<orders.length;i++){
+         await list.push({
+            "title":"Product ID: "+orders[i].sku+", Order date: "+orders[i].timestamp,
+            "image_url":items[i][0].image,
+            "subtitle":'Total price: '+orders[i].amount+"$, coordinates: "+orders[i].lat+", "+orders[i].long+", Phone: "+orders[i].phone,
             "buttons":[
             {
                 "type":"postback",
@@ -129,8 +137,60 @@ async function Orders_Menu(id,database){
                 "payload":"main_menu"
             }]      
         });
-    });
+    }
+   
+    console.log(list);
     return list;
+}
+
+function Share_Invite(url){
+    let text={
+            "attachment":{
+              "type":"template",
+              "payload":{
+                "template_type":"generic",
+                "elements":[
+                  {
+                    "title":"Test page",
+                    "subtitle":"Click Share to invite your friend",
+                    "image_url":"https://scontent.flwo1-1.fna.fbcdn.net/v/t1.0-1/p200x200/47156807_1928305914145862_3333660663472979968_n.png?_nc_cat=101&_nc_ht=scontent.flwo1-1.fna&oh=c36b3948eb04224f23c67d537cee21eb&oe=5C8E6ACD",
+                    "buttons": [
+                      {
+                        "type": "element_share",
+                        "share_contents": { 
+                          "attachment": {
+                            "type": "template",
+                            "payload": {
+                              "template_type": "generic",
+                              "elements": [
+                                {
+                                  "title": "Test",
+                                  "subtitle": "For bot testing",
+                                  "image_url": "https://scontent.flwo1-1.fna.fbcdn.net/v/t1.0-1/p200x200/47156807_1928305914145862_3333660663472979968_n.png?_nc_cat=101&_nc_ht=scontent.flwo1-1.fna&oh=c36b3948eb04224f23c67d537cee21eb&oe=5C8E6ACD",
+                                  "default_action": {
+                                    "type": "web_url",
+                                    "url": url
+                                  },
+                                  "buttons": [
+                                    {
+                                      "type": "web_url",
+                                      "url": url, 
+                                      "title": "Join"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+    };
+    return text;
 }
 
 module.exports={
@@ -138,5 +198,6 @@ module.exports={
    Catalogue,
    Item_Description,
    Favorite_Menu,
-   Orders_Menu
+   Orders_Menu,
+   Share_Invite
 }

@@ -31,23 +31,7 @@ module.exports = function(controller, bot) {
       require("./routes/" + file)(webserver, controller);
     });
 
-   
 
-    request.post('https://graph.facebook.com/me/subscribed_apps?subscribed_fields=messages&access_token=' + process.env.page_token,
-function (err, res, body) {
-if (err) {
-controller.log('Could not subscribe to page messages');
-}
-else {
-controller.log('Successfully subscribed to Facebook events:', body);
-console.log('Botkit activated');
-
-  // start ticking to send conversation messages
-  controller.startTicking();
-}
-
-}
-);
  controller.webserver = webserver;
     return webserver;
 

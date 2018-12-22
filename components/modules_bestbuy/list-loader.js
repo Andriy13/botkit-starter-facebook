@@ -6,7 +6,6 @@ async function loadIds(){
 async function loadDetails(Ids){
     let list;
     if(Ids===undefined){
-        console.log('no ids');
         list = await loadIds();
     }else{
         list=Ids;
